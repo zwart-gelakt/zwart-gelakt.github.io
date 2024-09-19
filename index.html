@@ -1,0 +1,130 @@
+<html>
+
+<head>
+    <title>Home</title>
+    <script src='https://html2canvas.hertzen.com/dist/html2canvas.min.js'>  </script>;
+
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font: 21px Arial;
+        }
+
+        span.black {
+            background-color: black;
+            xbackground-color: white;
+        }
+
+        section.read span.black {
+            font-size: 20%
+        }
+
+        span.letters {
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        section {
+            background: white;
+            padding: 1em;
+            max-width: 800px;
+            margin: 0 auto;
+            font: 30px Arial;
+        }
+
+        button {
+            font: inherit;
+            padding: 0.5em 1em;
+            background: #0252a7;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            font: inherit;
+        }
+
+        #textresult {
+            padding-top: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <section id="section1">
+        <img src="https://data.overheid.nl/sites/default/files/2021-06/logo_0.png" alt="Zwart Gelakt">
+        <br><br>
+        <zwart-gelakt>Dom volk, wen er maar aan, jullie leven nu in mijn bananen-monarchie. Groet! Dick
+            Schoof</zwart-gelakt>
+        <br><br>
+        <button id="button">Ik kan het niet lezen</button>
+    </section>
+    <section id="section2">
+        <h2>Maak je eigen tekst</h2>
+        <textarea id="textarea" rows="4" cols="60" placeholder="Schrijf hier jouw boodschap..."></textarea>
+        <zwart-gelakt></zwart-gelakt>
+        <br>
+        <div id="textresult"></div>
+        <button id="copy">Copy tekst</button>
+    </section>
+    <script>
+        customElements.define("zwart-gelakt", class extends HTMLElement {
+            connectedCallback() {
+                const createElement = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+                setTimeout(() => {
+                    this.originalText = this.innerHTML;
+                    const parts = this.innerHTML.match(/.{1,2}/g);
+                    this.innerHTML = "";
+                    this.append(
+                        ...parts.map(part => {
+                            let rand = Math.floor(Math.random() * 2) + 1;
+                            return [
+                                createElement("span", { innerHTML: part, className: "letters" }),
+                                createElement("span", { innerHTML: "&nbsp;&nbsp;&nbsp;&nbsp;".repeat(rand), className: "black" })
+                            ]
+                        }).flat()// map
+                    );// append
+                });// setTimeout
+            }// connectedCallback
+        });
+        textarea.oninput = () => {
+            textresult.innerHTML = `<zwart-gelakt>${textarea.value}</zwart-gelakt>`;
+            localStorage.setItem("text", textarea.value);
+            copy.innerHTML = "Copy tekst";
+        };
+        textarea.value = localStorage.getItem("text") || "";
+        copy.onclick = () => {
+            setTimeout(() => {
+                html2canvas(
+                    document.getElementById('textresult'),
+                    {
+                        //backgroundColor: '#000',
+                        width: document.getElementById('textresult').offsetWidth,
+                        height: document.getElementById('textresult').offsetHeight,
+                    }
+                ).then(canvas => {
+                    canvas.toBlob(blob => {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        navigator.clipboard.write([item]).then(() => {
+                            console.log('Screenshot copied to clipboard');
+                        }).catch(err => {
+                            console.error('Failed to copy screenshot: ', err);
+                        });
+                    });
+                });
+                copy.innerHTML = "Copied!";
+            }, 100);
+        };
+        button.onclick = () => {
+            section1.classList.toggle("read");
+            if (section1.classList.contains("read")) {
+                button.innerHTML = "Ik ben niet dom!";
+            } else {
+                button.innerHTML = "Ik kan het niet lezen";
+            }
+        }
+    </script>
+
+</html>
